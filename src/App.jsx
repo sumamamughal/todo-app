@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, ChevronLeft, Home, ListTodo, User, CheckCircle2, Timer, Hourglass, ChevronRight, CalendarX, Moon, Sun } from "lucide-react";
+import { Plus, ChevronLeft, Home, ListTodo, User, CheckCircle2, Timer, Hourglass, ChevronRight, CalendarX, Moon, Sun, Edit2, Trash2, Paperclip, TrendingUp, Target, Award, Settings, Bell, Shield, HelpCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTodos } from "./hooks/useTodos";
 import TodoForm from "./components/TodoForm";
@@ -10,6 +10,7 @@ function App() {
   const [activeTab, setActiveTab] = useState("todo");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [editingTodo, setEditingTodo] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
     return savedTheme === 'dark';
@@ -55,6 +56,16 @@ function App() {
     return isSameDay(new Date(todo.dueDate), selectedDate);
   });
 
+  // Calculate stats for Home page
+  const totalTodos = todos.length;
+  const completedTodos = todos.filter(todo => todo.completed).length;
+  const pendingTodos = totalTodos - completedTodos;
+  const completionRate = totalTodos > 0 ? Math.round((completedTodos / totalTodos) * 100) : 0;
+  const todayTodos = todos.filter(todo => {
+    if (!todo.dueDate) return false;
+    return isSameDay(new Date(todo.dueDate), new Date());
+  }).length;
+
   return (
     <div className="app-container" role="main" aria-label="Todo application">
       {/* Header */}
@@ -83,112 +94,505 @@ function App() {
         </div>
       </header>
 
-      {/* Date Title */}
-      <section className="date-section">
-        <h1 className="current-date">
-          {format(selectedDate, "MMM d, yyyy")}
-          <span>Today</span>
-        </h1>
-      </section>
+      {/* Date Title - Only show for Todo tab */}
+      {activeTab === 'todo' && (
+        <>
+          <section className="date-section">
+            <h1 className="current-date">
+              {format(selectedDate, "MMM d, yyyy")}
+              <span>Today</span>
+            </h1>
+          </section>
 
-      {/* Calendar Strip */}
-      <nav className="calendar-strip" aria-label="Week calendar navigation">
-        {weekDays.map((day) => (
-          <button
-            key={day.toString()}
-            className={`day-item ${isSameDay(day, selectedDate) ? 'active' : ''}`}
-            onClick={() => setSelectedDate(day)}
-            aria-label={`Select ${format(day, "EEEE, MMMM d")}`}
-            aria-current={isSameDay(day, selectedDate) ? 'date' : undefined}
-          >
-            <span className="day-name">{format(day, "EEE")}</span>
-            <div className="day-number">{format(day, "d")}</div>
-          </button>
-        ))}
-      </nav>
+          {/* Calendar Strip */}
+          <nav className="calendar-strip" aria-label="Week calendar navigation">
+            {weekDays.map((day) => (
+              <button
+                key={day.toString()}
+                className={`day-item ${isSameDay(day, selectedDate) ? 'active' : ''}`}
+                onClick={() => setSelectedDate(day)}
+                aria-label={`Select ${format(day, "EEEE, MMMM d")}`}
+                aria-current={isSameDay(day, selectedDate) ? 'date' : undefined}
+              >
+                <span className="day-name">{format(day, "EEE")}</span>
+                <div className="day-number">{format(day, "d")}</div>
+              </button>
+            ))}
+          </nav>
+        </>
+      )}
 
-      {/* Task List / Timeline */}
-      <main className="tasks-area">
-        {filteredTodos.length > 0 ? (
-          filteredTodos.map((todo, index) => (
+      {/* Main Content Area */}
+      <main className={`tasks-area ${activeTab === 'todo' ? 'tasks-area-todo' : ''}`}>
+        <AnimatePresence mode="wait">
+          {activeTab === 'home' && (
             <motion.div
-              layout
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-              key={todo.id}
-              className={`task-timeline-item ${!todo.completed && index === 0 ? 'active' : ''}`}
+              key="home"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              style={{ padding: '20px 0' }}
             >
-              <div className="timeline-dot"></div>
-              <div className={`task-card ${!todo.completed && index === 0 ? 'active' : ''}`}>
-                <div className="task-header">
-                  <span className="task-title">{todo.text}</span>
-                  <span className="task-time">{todo.time || "12.00pm"}</span>
-                </div>
-                <p className="task-description">
-                  {todo.description || "No description provided for this task."}
-                </p>
-                <div className="task-footer">
-                  <div className="status-icon">
-                    {todo.completed ? (
-                      <CheckCircle2 size={24} color="#4CAF50" fill="#4CAF50" strokeWidth={1} style={{ opacity: 1, color: "white" }} />
-                    ) : index === 0 ? (
-                      <Timer size={24} color="white" />
-                    ) : (
-                      <Hourglass size={24} color="#5D5FEF" />
-                    )}
+              <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '24px', color: 'var(--text-main)' }}>
+                Dashboard
+              </h2>
+
+              {/* Stats Cards */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
+                <div style={{
+                  background: 'var(--bg-card)',
+                  borderRadius: '20px',
+                  padding: '20px',
+                  boxShadow: 'var(--shadow-card)',
+                  border: '1px solid var(--glass-border)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '500' }}>Total Tasks</span>
+                    <ListTodo size={20} color="var(--primary)" />
                   </div>
-                  <button
-                    className="task-action-btn"
-                    onClick={() => toggleTodo(todo.id)}
-                  >
-                    <span>{todo.completed ? "Check summary" : "Check process"}</span>
-                    <ChevronRight size={14} />
-                  </button>
+                  <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--text-main)' }}>{totalTodos}</div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{
+                    background: 'var(--bg-card)',
+                    borderRadius: '16px',
+                    padding: '16px',
+                    boxShadow: 'var(--shadow-card)',
+                    border: '1px solid var(--glass-border)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                      <CheckCircle2 size={18} color="#4CAF50" />
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>Completed</span>
+                    </div>
+                    <div style={{ fontSize: '24px', fontWeight: '700', color: '#4CAF50' }}>{completedTodos}</div>
+                  </div>
+
+                  <div style={{
+                    background: 'var(--bg-card)',
+                    borderRadius: '16px',
+                    padding: '16px',
+                    boxShadow: 'var(--shadow-card)',
+                    border: '1px solid var(--glass-border)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                      <Timer size={18} color="#FF9800" />
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>Pending</span>
+                    </div>
+                    <div style={{ fontSize: '24px', fontWeight: '700', color: '#FF9800' }}>{pendingTodos}</div>
+                  </div>
+                </div>
+
+                <div style={{
+                  background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%)',
+                  borderRadius: '20px',
+                  padding: '20px',
+                  boxShadow: '0 8px 24px rgba(93, 95, 239, 0.25)',
+                  color: 'white'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <span style={{ fontSize: '14px', opacity: 0.9, fontWeight: '500' }}>Completion Rate</span>
+                    <TrendingUp size={20} />
+                  </div>
+                  <div style={{ fontSize: '32px', fontWeight: '700' }}>{completionRate}%</div>
+                  <div style={{ fontSize: '12px', opacity: 0.8, marginTop: '4px' }}>
+                    {completedTodos} of {totalTodos} tasks done
+                  </div>
+                </div>
+
+                <div style={{
+                  background: 'var(--bg-card)',
+                  borderRadius: '16px',
+                  padding: '16px',
+                  boxShadow: 'var(--shadow-card)',
+                  border: '1px solid var(--glass-border)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <CalendarX size={18} color="var(--primary)" />
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>Today's Tasks</span>
+                  </div>
+                  <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-main)' }}>{todayTodos}</div>
                 </div>
               </div>
+
+              {/* Recent Activity */}
+              <div>
+                <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: 'var(--text-main)' }}>
+                  Recent Tasks
+                </h3>
+                {todos.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {todos.slice(0, 5).map((todo) => (
+                      <div
+                        key={todo.id}
+                        style={{
+                          background: 'var(--bg-card)',
+                          borderRadius: '12px',
+                          padding: '14px',
+                          boxShadow: 'var(--shadow-card)',
+                          border: '1px solid var(--glass-border)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px'
+                        }}
+                      >
+                        {todo.completed ? (
+                          <CheckCircle2 size={20} color="#4CAF50" fill="#4CAF50" />
+                        ) : (
+                          <div style={{
+                            width: '20px',
+                            height: '20px',
+                            borderRadius: '50%',
+                            border: '2px solid var(--text-muted)'
+                          }} />
+                        )}
+                        <span style={{
+                          flex: 1,
+                          fontSize: '14px',
+                          color: todo.completed ? 'var(--text-muted)' : 'var(--text-main)',
+                          textDecoration: todo.completed ? 'line-through' : 'none'
+                        }}>
+                          {todo.text}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{
+                    textAlign: 'center',
+                    padding: '40px 20px',
+                    color: 'var(--text-muted)',
+                    fontSize: '14px'
+                  }}>
+                    No tasks yet. Create your first task!
+                  </div>
+                )}
+              </div>
             </motion.div>
-          ))
-        ) : (
-          <motion.div
-            className="empty-state"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{
-              textAlign: "center",
-              padding: "60px 20px",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "16px"
-            }}
-          >
-            <div style={{
-              background: "var(--bg-glass)",
-              borderRadius: "50%",
-              width: "80px",
-              height: "80px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: "8px"
-            }}>
-              <CalendarX size={40} color="var(--text-muted)" strokeWidth={1.5} />
-            </div>
-            <h3 style={{ fontSize: "18px", fontWeight: "600", color: "var(--text-main)" }}>
-              No tasks scheduled
-            </h3>
-            <p style={{ color: "var(--text-muted)", fontSize: "14px", maxWidth: "280px" }}>
-              Click "Add Task" or press <kbd style={{
-                background: "var(--bg-glass)",
-                padding: "2px 8px",
-                borderRadius: "6px",
-                fontWeight: "600",
-                fontSize: "12px"
-              }}>Ctrl+N</kbd> to create your first task for {format(selectedDate, "MMMM d")}!
-            </p>
-          </motion.div>
-        )}
+          )}
+
+          {activeTab === 'todo' && (
+            <motion.div
+              key="todo"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {filteredTodos.length > 0 ? (
+                filteredTodos.map((todo, index) => (
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    key={todo.id}
+                    className={`task-timeline-item ${!todo.completed && index === 0 ? 'active' : ''}`}
+                  >
+                    <div className="timeline-dot"></div>
+                    <div className={`task-card ${!todo.completed && index === 0 ? 'active' : ''}`}>
+                      <div className="task-header">
+                        <span className="task-title">{todo.text}</span>
+                        <span className="task-time">{todo.time || "12.00pm"}</span>
+                      </div>
+                      <p className="task-description">
+                        {todo.description || "No description provided for this task."}
+                      </p>
+
+                      {/* Attachment Display */}
+                      {todo.attachment && (
+                        <div
+                          className="task-attachment"
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '10px 14px',
+                            background: todo.completed || index === 0 ? 'rgba(255, 255, 255, 0.15)' : 'var(--bg-glass)',
+                            borderRadius: '12px',
+                            fontSize: '13px',
+                            marginTop: '8px',
+                            color: todo.completed || index === 0 ? 'rgba(255, 255, 255, 0.9)' : 'var(--primary)',
+                            border: todo.completed || index === 0 ? 'none' : '1px solid var(--primary)'
+                          }}
+                        >
+                          <Paperclip size={16} />
+                          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {todo.attachment}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="task-footer">
+                        <div className="status-icon">
+                          {todo.completed ? (
+                            <CheckCircle2 size={24} color="#4CAF50" fill="#4CAF50" strokeWidth={1} style={{ opacity: 1, color: "white" }} />
+                          ) : index === 0 ? (
+                            <Timer size={24} color="white" />
+                          ) : (
+                            <Hourglass size={24} color="#5D5FEF" />
+                          )}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                          <button
+                            className="task-icon-btn"
+                            onClick={() => {
+                              setEditingTodo(todo);
+                              setIsFormOpen(true);
+                            }}
+                            title="Edit task"
+                            aria-label="Edit task"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            className="task-icon-btn"
+                            onClick={() => deleteTodo(todo.id)}
+                            title="Delete task"
+                            aria-label="Delete task"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                          <button
+                            className="task-action-btn"
+                            onClick={() => toggleTodo(todo.id)}
+                          >
+                            <span>{todo.completed ? "Check summary" : "Check process"}</span>
+                            <ChevronRight size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))
+              ) : (
+                <motion.div
+                  className="empty-state"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  style={{
+                    textAlign: "center",
+                    padding: "60px 20px",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "16px"
+                  }}
+                >
+                  <div style={{
+                    background: "var(--bg-glass)",
+                    borderRadius: "50%",
+                    width: "80px",
+                    height: "80px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: "8px"
+                  }}>
+                    <CalendarX size={40} color="var(--text-muted)" strokeWidth={1.5} />
+                  </div>
+                  <h3 style={{ fontSize: "18px", fontWeight: "600", color: "var(--text-main)" }}>
+                    No tasks scheduled
+                  </h3>
+                  <p style={{ color: "var(--text-muted)", fontSize: "14px", maxWidth: "280px" }}>
+                    Click "Add Task" or press <kbd style={{
+                      background: "var(--bg-glass)",
+                      padding: "2px 8px",
+                      borderRadius: "6px",
+                      fontWeight: "600",
+                      fontSize: "12px"
+                    }}>Ctrl+N</kbd> to create your first task for {format(selectedDate, "MMMM d")}!
+                  </p>
+                </motion.div>
+              )}
+            </motion.div>
+          )}
+
+          {activeTab === 'profile' && (
+            <motion.div
+              key="profile"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              style={{ padding: '20px 0' }}
+            >
+              <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '24px', color: 'var(--text-main)' }}>
+                Profile & Settings
+              </h2>
+
+              {/* Profile Section */}
+              <div style={{
+                background: 'var(--bg-card)',
+                borderRadius: '20px',
+                padding: '24px',
+                boxShadow: 'var(--shadow-card)',
+                border: '1px solid var(--glass-border)',
+                marginBottom: '24px',
+                textAlign: 'center'
+              }}>
+                <div style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px',
+                  color: 'white',
+                  fontSize: '32px',
+                  fontWeight: '700'
+                }}>
+                  {totalTodos > 0 ? String(totalTodos).charAt(0) : 'U'}
+                </div>
+                <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-main)' }}>
+                  User Profile
+                </h3>
+                <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+                  {totalTodos} total tasks • {completedTodos} completed
+                </p>
+              </div>
+
+              {/* Settings Options */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <button
+                  onClick={toggleTheme}
+                  style={{
+                    background: 'var(--bg-card)',
+                    borderRadius: '16px',
+                    padding: '16px',
+                    boxShadow: 'var(--shadow-card)',
+                    border: '1px solid var(--glass-border)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s',
+                    border: 'none',
+                    width: '100%',
+                    textAlign: 'left'
+                  }}
+                  onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'}
+                  onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  {isDarkMode ? <Sun size={20} color="var(--primary)" /> : <Moon size={20} color="var(--primary)" />}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '4px' }}>
+                      Theme
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                      {isDarkMode ? 'Dark Mode' : 'Light Mode'}
+                    </div>
+                  </div>
+                  <ChevronRight size={18} color="var(--text-muted)" />
+                </button>
+
+                <div style={{
+                  background: 'var(--bg-card)',
+                  borderRadius: '16px',
+                  padding: '16px',
+                  boxShadow: 'var(--shadow-card)',
+                  border: '1px solid var(--glass-border)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}>
+                  <Bell size={20} color="var(--primary)" />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '4px' }}>
+                      Notifications
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                      Manage your notification preferences
+                    </div>
+                  </div>
+                  <ChevronRight size={18} color="var(--text-muted)" />
+                </div>
+
+                <div style={{
+                  background: 'var(--bg-card)',
+                  borderRadius: '16px',
+                  padding: '16px',
+                  boxShadow: 'var(--shadow-card)',
+                  border: '1px solid var(--glass-border)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}>
+                  <Shield size={20} color="var(--primary)" />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '4px' }}>
+                      Privacy & Security
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                      Your data is stored locally
+                    </div>
+                  </div>
+                  <ChevronRight size={18} color="var(--text-muted)" />
+                </div>
+
+                <div style={{
+                  background: 'var(--bg-card)',
+                  borderRadius: '16px',
+                  padding: '16px',
+                  boxShadow: 'var(--shadow-card)',
+                  border: '1px solid var(--glass-border)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}>
+                  <HelpCircle size={20} color="var(--primary)" />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '4px' }}>
+                      Help & Support
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                      Get help and learn more
+                    </div>
+                  </div>
+                  <ChevronRight size={18} color="var(--text-muted)" />
+                </div>
+
+                <div style={{
+                  background: 'var(--bg-card)',
+                  borderRadius: '16px',
+                  padding: '16px',
+                  boxShadow: 'var(--shadow-card)',
+                  border: '1px solid var(--glass-border)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}>
+                  <Settings size={20} color="var(--primary)" />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '4px' }}>
+                      App Settings
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                      Customize your experience
+                    </div>
+                  </div>
+                  <ChevronRight size={18} color="var(--text-muted)" />
+                </div>
+              </div>
+
+              {/* App Info */}
+              <div style={{
+                marginTop: '32px',
+                padding: '16px',
+                textAlign: 'center',
+                color: 'var(--text-muted)',
+                fontSize: '12px'
+              }}>
+                <p>Todo App v1.0.0</p>
+                <p style={{ marginTop: '4px' }}>Built with React & Vite</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       {/* Bottom Navigation */}
@@ -230,7 +634,10 @@ function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setIsFormOpen(false)}
+            onClick={() => {
+              setIsFormOpen(false);
+              setEditingTodo(null);
+            }}
           >
             <motion.div
               className="modal-content"
@@ -240,14 +647,29 @@ function App() {
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <TodoForm addTodo={(data) => {
-                addTodo({ ...data, dueDate: selectedDate.toISOString() });
-                setIsFormOpen(false);
-              }} onCancel={() => setIsFormOpen(false)} />
+              <TodoForm
+                initialTodo={editingTodo}
+                addTodo={(data) => {
+                  addTodo({ ...data, dueDate: selectedDate.toISOString() });
+                  setIsFormOpen(false);
+                  setEditingTodo(null);
+                }}
+                updateTodo={(id, data) => {
+                  updateTodo(id, data);
+                  setIsFormOpen(false);
+                  setEditingTodo(null);
+                }}
+                onCancel={() => {
+                  setIsFormOpen(false);
+                  setEditingTodo(null);
+                }}
+              />
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
     </div>
   );
 }

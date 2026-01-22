@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 /* Light Mode (Default) */
 :root {
@@ -60,7 +60,7 @@
 }
 
 body {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter', sans-serif;
   background: var(--bg-app);
   color: var(--text-main);
   min-height: 100vh;
@@ -279,8 +279,8 @@ body:not([data-theme="dark"]) {
   z-index: 1;
 }
 
-/* Timeline Line */
-.tasks-area::before {
+/* Timeline Line - Only show for Todo tab */
+.tasks-area-todo::before {
   content: '';
   position: absolute;
   left: 32px;
@@ -385,13 +385,13 @@ body:not([data-theme="dark"]) {
   border: none;
   background: rgba(255, 255, 255, 0.2);
   color: white;
-  padding: 8px 16px;
-  border-radius: 12px;
-  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 11px;
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -403,6 +403,36 @@ body:not([data-theme="dark"]) {
 
 .task-action-btn:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* Task Icon Buttons (Edit/Delete) */
+.task-icon-btn {
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 28px;
+  height: 28px;
+}
+
+.task-card:not(.active) .task-icon-btn {
+  background: rgba(93, 95, 239, 0.1);
+  color: var(--primary);
+}
+
+.task-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.task-card:not(.active) .task-icon-btn:hover {
+  background: rgba(93, 95, 239, 0.2);
 }
 
 /* Bottom Navigation */
@@ -467,7 +497,7 @@ body:not([data-theme="dark"]) {
 
 .modal-content {
   width: 100%;
-  background: white;
+  background: var(--bg-card);
   border-top-left-radius: 32px;
   border-top-right-radius: 32px;
   padding: 32px 24px;
@@ -501,7 +531,7 @@ body:not([data-theme="dark"]) {
   padding: 14px 18px;
   border-radius: 14px;
   border: 1px solid var(--input-border);
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 15px;
   outline: none;
   transition: border-color 0.2s, background 0.3s, color 0.3s;
@@ -538,6 +568,45 @@ body:not([data-theme="dark"]) {
 .tasks-area::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.05);
   border-radius: 10px;
+}
+
+/* Home & Profile Page Styles */
+.stats-card {
+  background: var(--bg-card);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--glass-border);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.settings-item {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+  width: 100%;
+  text-align: left;
+}
+
+.settings-item:hover {
+  background: var(--bg-glass);
+  transform: translateX(4px);
+}
+
+.settings-item:active {
+  transform: scale(0.98);
 }
 
 @media (max-width: 480px) {
