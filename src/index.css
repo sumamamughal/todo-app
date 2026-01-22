@@ -634,11 +634,428 @@ body:not([data-theme="dark"]) {
   transform: scale(0.98);
 }
 
+/* Mobile Optimizations */
 @media (max-width: 480px) {
   .app-container {
     height: 100vh;
     max-height: none;
     margin: 0;
     border-radius: 0;
+    width: 100%;
+  }
+
+  /* Header adjustments */
+  .app-header {
+    padding: 20px 16px 16px;
+  }
+
+  .back-btn,
+  .theme-toggle {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .add-task-btn {
+    padding: 12px 16px;
+    font-size: 13px;
+    min-height: 44px;
+  }
+
+  .add-task-btn span {
+    display: none;
+  }
+
+  /* Date section */
+  .date-section {
+    margin-bottom: 20px;
+  }
+
+  .current-date {
+    font-size: 16px;
+  }
+
+  /* Calendar strip - mobile optimized */
+  .calendar-strip {
+    padding: 0 12px;
+    margin-bottom: 24px;
+    gap: 4px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .calendar-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .day-item {
+    min-width: 50px;
+    gap: 6px;
+  }
+
+  .day-name {
+    font-size: 11px;
+  }
+
+  .day-number {
+    width: 32px;
+    height: 40px;
+    font-size: 14px;
+  }
+
+  /* Tasks area */
+  .tasks-area {
+    padding: 0 16px;
+    padding-bottom: 100px;
+  }
+
+  /* Task cards */
+  .task-card {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .task-title {
+    font-size: 15px;
+  }
+
+  .task-time {
+    font-size: 11px;
+  }
+
+  .task-description {
+    font-size: 12px;
+  }
+
+  /* Task buttons - touch friendly */
+  .task-icon-btn {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    padding: 8px;
+  }
+
+  .task-action-btn {
+    padding: 8px 14px;
+    font-size: 11px;
+    min-height: 36px;
+  }
+
+  .task-action-btn span {
+    font-size: 11px;
+  }
+
+  /* Bottom navigation */
+  .bottom-nav {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    padding: 0 8px;
+  }
+
+  .nav-item {
+    padding: 8px 12px;
+    min-height: 44px;
+    font-size: 12px;
+  }
+
+  .nav-item span {
+    font-size: 12px;
+  }
+
+  /* Modal optimizations */
+  .modal-content {
+    padding: 24px 20px;
+    max-height: 90vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .form-group {
+    margin-bottom: 18px;
+  }
+
+  .form-input {
+    padding: 12px 16px;
+    font-size: 16px; /* Prevents zoom on iOS */
+    border-radius: 12px;
+  }
+
+  .submit-btn {
+    padding: 14px;
+    font-size: 15px;
+    min-height: 48px;
+  }
+
+  /* Stats cards on home page */
+  .stats-card {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  /* Settings items */
+  .settings-item {
+    padding: 14px;
+    min-height: 56px;
+  }
+
+  /* Prevent text selection on buttons */
+  button {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  }
+
+  /* Better touch targets */
+  input[type="text"],
+  input[type="time"],
+  textarea {
+    min-height: 44px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  /* Calendar day items - better touch */
+  .day-item {
+    padding: 8px 4px;
+  }
+
+  /* Task detail modal mobile */
+  .modal-content {
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  /* Home page stats - mobile grid */
+  .home-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Profile settings - mobile */
+  .profile-settings-item {
+    min-height: 56px;
+    padding: 14px;
+  }
+}
+
+/* Prevent pull-to-refresh on mobile */
+body {
+  overscroll-behavior-y: contain;
+}
+
+/* Smooth scrolling on mobile */
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Better text rendering on mobile */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 480px) {
+  /* Ensure modals take full width on mobile */
+  .modal-content {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+  }
+
+  /* Better spacing in task detail modal */
+  .task-detail-modal h2 {
+    font-size: 20px !important;
+  }
+
+  .task-detail-modal h3 {
+    font-size: 18px !important;
+  }
+
+  /* Action buttons stack on mobile */
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+
+  /* Home page title */
+  .home-page h2 {
+    font-size: 20px !important;
+  }
+
+  /* Profile page title */
+  .profile-page h2 {
+    font-size: 20px !important;
+  }
+
+  /* Stats numbers - slightly smaller on mobile */
+  .stats-number {
+    font-size: 28px !important;
+  }
+
+  /* Recent tasks list - better spacing */
+  .recent-tasks-item {
+    padding: 12px !important;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 320px) {
+  .app-header {
+    padding: 12px 8px 8px;
+  }
+
+  .add-task-btn {
+    padding: 8px 12px;
+  }
+
+  .task-card {
+    padding: 14px;
+  }
+
+  .modal-content {
+    padding: 16px 12px;
+  }
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: max(0px)) {
+  .app-container {
+    padding-top: max(0px, env(safe-area-inset-top));
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+
+  .bottom-nav {
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Prevent double-tap zoom on buttons */
+button,
+a {
+  touch-action: manipulation;
+}
+
+/* Better focus states for mobile */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Improve scrolling performance on mobile */
+.tasks-area,
+.modal-content {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Disable text selection on UI elements */
+.nav-item,
+.task-icon-btn,
+.task-action-btn,
+.day-item {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Small mobile devices (320px - 375px) */
+@media (max-width: 375px) {
+  .app-header {
+    padding: 16px 12px 12px;
+  }
+
+  .add-task-btn {
+    padding: 10px 14px;
+  }
+
+  .calendar-strip {
+    padding: 0 8px;
+  }
+
+  .day-item {
+    min-width: 44px;
+  }
+
+  .day-number {
+    width: 28px;
+    height: 36px;
+    font-size: 13px;
+  }
+
+  .task-card {
+    padding: 16px;
+  }
+
+  .tasks-area {
+    padding: 0 12px;
+  }
+
+  .modal-content {
+    padding: 20px 16px;
+  }
+}
+
+/* Landscape mobile optimization */
+@media (max-height: 500px) and (orientation: landscape) {
+  .app-container {
+    height: 100vh;
+  }
+
+  .date-section {
+    margin-bottom: 12px;
+  }
+
+  .calendar-strip {
+    margin-bottom: 16px;
+  }
+
+  .tasks-area {
+    padding-bottom: 80px;
+  }
+
+  .bottom-nav {
+    height: 60px;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover effects on touch devices */
+  .nav-item:hover {
+    transform: none;
+  }
+
+  .task-icon-btn:hover {
+    transform: none;
+  }
+
+  /* Better tap feedback */
+  button:active {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+
+  /* Larger touch targets */
+  .task-icon-btn,
+  .task-action-btn {
+    min-width: 44px;
+    min-height: 44px;
   }
 }

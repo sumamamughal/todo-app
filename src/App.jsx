@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, ChevronLeft, Home, ListTodo, User, CheckCircle2, Timer, Hourglass, ChevronRight, CalendarX, Moon, Sun, Edit2, Trash2, Paperclip, TrendingUp, Target, Award, Settings, Bell, Shield, HelpCircle } from "lucide-react";
+import { Plus, ChevronLeft, Home, ListTodo, User, CheckCircle2, Timer, Hourglass, ChevronRight, CalendarX, Moon, Sun, Edit2, Trash2, Paperclip, TrendingUp, Target, Award, Settings, Bell, Shield, HelpCircle, X, MessageSquare, Clock, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTodos } from "./hooks/useTodos";
 import TodoForm from "./components/TodoForm";
@@ -11,6 +11,8 @@ function App() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [editingTodo, setEditingTodo] = useState(null);
+  const [viewingTodo, setViewingTodo] = useState(null);
+  const [newNote, setNewNote] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
     return savedTheme === 'dark';
@@ -29,6 +31,16 @@ function App() {
     setIsDarkMode(prev => !prev);
   };
 
+  // Sync viewingTodo with latest todo data
+  useEffect(() => {
+    if (viewingTodo) {
+      const updatedTodo = todos.find(t => t.id === viewingTodo.id);
+      if (updatedTodo) {
+        setViewingTodo(updatedTodo);
+      }
+    }
+  }, [todos, viewingTodo?.id]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -37,15 +49,16 @@ function App() {
         e.preventDefault();
         setIsFormOpen(true);
       }
-      // Escape to close modal
-      if (e.key === 'Escape' && isFormOpen) {
-        setIsFormOpen(false);
+      // Escape to close modals
+      if (e.key === 'Escape') {
+        if (isFormOpen) setIsFormOpen(false);
+        if (viewingTodo) setViewingTodo(null);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isFormOpen]);
+  }, [isFormOpen, viewingTodo]);
 
   // Generate week days
   const startDate = startOfWeek(selectedDate, { weekStartsOn: 1 });
@@ -193,6 +206,7 @@ function App() {
                 </motion.div>
 
                 <motion.div 
+                  className="home-stats-grid"
                   style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -447,7 +461,7 @@ function App() {
                     </button>
                     <button
                       className="task-action-btn"
-                      onClick={() => toggleTodo(todo.id)}
+                      onClick={() => setViewingTodo(todo)}
                     >
                       <span>{todo.completed ? "Check summary" : "Check process"}</span>
                             <ChevronRight size={12} />
@@ -811,7 +825,282 @@ function App() {
         )}
       </AnimatePresence>
 
-      {/* Delete Confirmation Modal */}
+      {/* Task Detail Modal - Check Process/Summary */}
+      <AnimatePresence>
+        {viewingTodo && (
+          <motion.div
+            className="modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => {
+              setViewingTodo(null);
+              setNewNote("");
+            }}
+          >
+            <motion.div
+              className="modal-content"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}
+            >
+              {/* Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <h2 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-main)' }}>
+                  {viewingTodo.completed ? 'Task Summary' : 'Check Process'}
+                </h2>
+                <button
+                  onClick={() => {
+                    setViewingTodo(null);
+                    setNewNote("");
+                  }}
+                  style={{
+                    background: 'var(--bg-glass)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    width: '36px',
+                    height: '36px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s'
+                  }}
+                  onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.9)'}
+                  onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  <X size={20} color="var(--text-main)" />
+                </button>
+              </div>
+
+              {/* Task Info */}
+              <div style={{
+                background: 'var(--bg-glass)',
+                borderRadius: '16px',
+                padding: '20px',
+                marginBottom: '20px',
+                border: '1px solid var(--glass-border)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                  {viewingTodo.completed ? (
+                    <CheckCircle2 size={24} color="#4CAF50" fill="#4CAF50" />
+                  ) : (
+                    <Timer size={24} color="var(--primary)" />
+                  )}
+                  <h3 style={{ fontSize: '20px', fontWeight: '600', color: 'var(--text-main)', flex: 1 }}>
+                    {viewingTodo.text}
+                  </h3>
+                </div>
+
+                {viewingTodo.description && (
+                  <div style={{ marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                      <FileText size={16} color="var(--text-muted)" />
+                      <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-muted)' }}>Description</span>
+                    </div>
+                    <p style={{ fontSize: '14px', color: 'var(--text-main)', lineHeight: '1.6', marginLeft: '24px' }}>
+                      {viewingTodo.description}
+                    </p>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Clock size={16} color="var(--text-muted)" />
+                    <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{viewingTodo.time}</span>
+                  </div>
+                  {viewingTodo.completed && viewingTodo.completedAt && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <CheckCircle2 size={16} color="#4CAF50" />
+                      <span style={{ fontSize: '13px', color: '#4CAF50' }}>
+                        Completed {format(new Date(viewingTodo.completedAt), "MMM d, yyyy 'at' h:mm a")}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {viewingTodo.attachment && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 14px',
+                    background: 'var(--bg-card)',
+                    borderRadius: '12px',
+                    marginTop: '12px'
+                  }}>
+                    <Paperclip size={16} color="var(--primary)" />
+                    <span style={{ fontSize: '13px', color: 'var(--text-main)', flex: 1 }}>
+                      {viewingTodo.attachment}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Notes Section */}
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <MessageSquare size={18} color="var(--primary)" />
+                  <h4 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-main)' }}>
+                    Notes & Updates
+                  </h4>
+                </div>
+
+                {/* Add Note */}
+                {!viewingTodo.completed && (
+                  <div style={{ marginBottom: '16px' }}>
+                    <textarea
+                      value={newNote}
+                      onChange={(e) => setNewNote(e.target.value)}
+                      placeholder="Add a note or update about this task..."
+                      style={{
+                        width: '100%',
+                        minHeight: '80px',
+                        padding: '12px',
+                        borderRadius: '12px',
+                        border: '1px solid var(--input-border)',
+                        background: 'var(--bg-card)',
+                        color: 'var(--text-main)',
+                        fontSize: '14px',
+                        fontFamily: 'Inter, sans-serif',
+                        resize: 'none',
+                        outline: 'none',
+                        transition: 'border-color 0.2s'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = 'var(--primary)'}
+                      onBlur={(e) => e.target.style.borderColor = 'var(--input-border)'}
+                    />
+                    <button
+                      onClick={() => {
+                        if (newNote.trim()) {
+                          const currentNotes = viewingTodo.notes || [];
+                          const updatedNotes = [...currentNotes, {
+                            text: newNote.trim(),
+                            createdAt: new Date().toISOString()
+                          }];
+                          updateTodo(viewingTodo.id, { notes: updatedNotes });
+                          setNewNote("");
+                        }
+                      }}
+                      style={{
+                        marginTop: '8px',
+                        padding: '10px 20px',
+                        background: 'var(--primary)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '10px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'transform 0.2s, background 0.2s'
+                      }}
+                      onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
+                      onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--primary-light)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'var(--primary)'}
+                    >
+                      Add Note
+                    </button>
+                  </div>
+                )}
+
+                {/* Display Notes */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {(viewingTodo.notes && viewingTodo.notes.length > 0) ? (
+                    viewingTodo.notes.map((note, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        style={{
+                          background: 'var(--bg-glass)',
+                          borderRadius: '12px',
+                          padding: '12px 16px',
+                          border: '1px solid var(--glass-border)'
+                        }}
+                      >
+                        <p style={{ fontSize: '14px', color: 'var(--text-main)', marginBottom: '6px', lineHeight: '1.5' }}>
+                          {note.text}
+                        </p>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                          {format(new Date(note.createdAt), "MMM d, yyyy 'at' h:mm a")}
+                        </span>
+                      </motion.div>
+                    ))
+                  ) : (
+                    <div style={{
+                      textAlign: 'center',
+                      padding: '20px',
+                      color: 'var(--text-muted)',
+                      fontSize: '14px',
+                      background: 'var(--bg-glass)',
+                      borderRadius: '12px',
+                      border: '1px solid var(--glass-border)'
+                    }}>
+                      {viewingTodo.completed ? 'No notes were added to this task.' : 'No notes yet. Add your first note above!'}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '12px' }}>
+                {!viewingTodo.completed && (
+                  <button
+                    onClick={() => {
+                      toggleTodo(viewingTodo.id);
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '14px',
+                      background: 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      fontSize: '15px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      boxShadow: '0 4px 12px rgba(76, 175, 80, 0.3)'
+                    }}
+                    onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
+                    onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                  >
+                    Mark as Complete
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    setEditingTodo(viewingTodo);
+                    setViewingTodo(null);
+                    setIsFormOpen(true);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '14px',
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-main)',
+                    border: '1px solid var(--input-border)',
+                    borderRadius: '12px',
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s'
+                  }}
+                  onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
+                  onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  Edit Task
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

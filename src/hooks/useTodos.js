@@ -24,11 +24,16 @@ export const useTodos = () => {
     const newTodo = {
       id: Date.now().toString(),
       text: todoData.text,
+      description: todoData.description || "",
+      time: todoData.time || "12.00pm",
       completed: false,
       priority: todoData.priority || "medium",
       category: todoData.category || "General",
       dueDate: todoData.dueDate || null,
+      attachment: todoData.attachment || null,
+      notes: [],
       createdAt: new Date().toISOString(),
+      completedAt: null,
       order: todos.length,
     };
     setTodos((prev) => [newTodo, ...prev]);
@@ -36,9 +41,17 @@ export const useTodos = () => {
 
   const toggleTodo = (id) => {
     setTodos((prev) =>
-      prev.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
+      prev.map((todo) => {
+        if (todo.id === id) {
+          const isCompleting = !todo.completed;
+          return {
+            ...todo,
+            completed: isCompleting,
+            completedAt: isCompleting ? new Date().toISOString() : null,
+          };
+        }
+        return todo;
+      })
     );
   };
 
@@ -48,7 +61,17 @@ export const useTodos = () => {
 
   const updateTodo = (id, updates) => {
     setTodos((prev) =>
-      prev.map((todo) => (todo.id === id ? { ...todo, ...updates } : todo))
+      prev.map((todo) => {
+        if (todo.id === id) {
+          // Ensure notes array exists
+          const updatedTodo = { ...todo, ...updates };
+          if (!updatedTodo.notes) {
+            updatedTodo.notes = [];
+          }
+          return updatedTodo;
+        }
+        return todo;
+      })
     );
   };
 
