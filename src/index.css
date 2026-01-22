@@ -465,10 +465,21 @@ body:not([data-theme="dark"]) {
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
   background: none;
   font-family: inherit;
+  position: relative;
+  transform: scale(1);
+}
+
+.nav-item:hover {
+  transform: scale(1.05);
+  color: var(--primary);
+}
+
+.nav-item:active {
+  transform: scale(0.95);
 }
 
 .nav-item:focus-visible {
@@ -479,6 +490,20 @@ body:not([data-theme="dark"]) {
 .nav-item.active {
   background: var(--primary);
   color: white;
+  transform: scale(1);
+  animation: navItemActive 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes navItemActive {
+  0% {
+    transform: scale(0.9);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Modal for Adding Tasks */
